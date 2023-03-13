@@ -26,6 +26,12 @@
     devShells.default = pkgs.mkShell {
       nativeBuildInputs = (with packages.chemo; nativeBuildInputs ++ buildInputs);
     };
+
+    nixosModules = rec {
+        default = chemo;
+        chemo = import ./nixos-module;
+    };
+
     apps = {
       chemo = utils.lib.mkApp { drv = packages.chemo; };
       default = apps.chemo;

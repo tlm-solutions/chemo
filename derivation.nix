@@ -1,4 +1,4 @@
-{ craneLib, src, lib, cmake, pkg-config, protobuf, grpc}:
+{ craneLib, src, lib, cmake, pkg-config, protobuf, grpc, openssl, postgresql_14}:
 
 craneLib.buildPackage {
   pname = "chemo";
@@ -6,7 +6,7 @@ craneLib.buildPackage {
 
   src = ./.;
 
-  buildInputs = [ cmake protobuf grpc ];
+  buildInputs = [ cmake protobuf grpc openssl postgresql_14];
   nativeBuildInputs = [ pkg-config ];
 
   meta = {
