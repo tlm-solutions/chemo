@@ -124,7 +124,7 @@ in
           environment = {
             "RUST_LOG" = "${cfg.log_level}";
             "RUST_BACKTRACE" = if (cfg.log_level == "info") then "0" else "1";
-	        "CHEMO_HOST" = "${cfg.host}:${toString cft.port}";
+	        "CHEMO_HOST" = "${cfg.host}:${toString cfg.port}";
             "CHEMO_POSTGRES_PASSWORD_PATH" = "${cfg.database.passwordFile}";
             "CHEMO_POSTGRES_HOST" = "${cfg.database.host}";
             "CHEMO_POSTGRES_PORT" = "${toString cfg.database.port}";
