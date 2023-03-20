@@ -111,38 +111,28 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    users.groups.TLMS-radio = {
-      name = "TLMS-radio";
-      members = [
-        "wartrammer"
-        "chemo"
-        "trekkie"
-      ];
-      gid = 1501;
-    };
-
     systemd = {
       services = {
         "chemo" = {
           enable = true;
-          wantedBy = [ "multi-user.target" "setup-chemo.service" ];
+          wantedBy = [ "multi-user.target" ];
 
           script = ''
             exec ${pkgs.chemo}/bin/chemo&
           '';
 
           environment = {
-	    "CHEMO_HOST" = "${cfg.host}:${toString cft.port}";
-            "POSTGRES_PASSWORD_PATH" = "${cfg.database.passwordFile}";
             "RUST_LOG" = "${cfg.log_level}";
             "RUST_BACKTRACE" = if (cfg.log_level == "info") then "0" else "1";
-            "POSTGRES_HOST" = "${cfg.database.host}";
-            "POSTGRES_PORT" = "${toString cfg.database.port}";
-            "POSTGRES_USER" = "${toString cfg.database.user}";
-            "POSTGRES_DATABASE" = "${toString cfg.database.database}";
+	        "CHEMO_HOST" = "${cfg.host}:${toString cft.port}";
+            "CHEMO_POSTGRES_PASSWORD_PATH" = "${cfg.database.passwordFile}";
+            "CHEMO_POSTGRES_HOST" = "${cfg.database.host}";
+            "CHEMO_POSTGRES_PORT" = "${toString cfg.database.port}";
+            "CHEMO_POSTGRES_USER" = "${toString cfg.database.user}";
+            "CHEMO_POSTGRES_DATABASE" = "${toString cfg.database.database}";
           } // (lib.foldl
             (x: y:
-              lib.mergeAttrs x { "GRPC_HOST_${y.name}" = "${y.schema}://${y.host}:${toString y.port}"; })
+              lib.mergeAttrs x { "CHEMO_GRPC_HOST_${y.name}" = "${y.schema}://${y.host}:${toString y.port}"; })
             { }
             cfg.GRPC);
 
