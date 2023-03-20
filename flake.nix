@@ -27,16 +27,16 @@
       nativeBuildInputs = (with packages.chemo; nativeBuildInputs ++ buildInputs);
     };
 
-    nixosModules = rec {
-        default = chemo;
-        chemo = import ./nixos-module;
-    };
-
     apps = {
       chemo = utils.lib.mkApp { drv = packages.chemo; };
       default = apps.chemo;
     };
   }) // {
+    nixosModules = rec {
+        default = chemo;
+        chemo = import ./nixos-module;
+    };
+
     overlays.default = final: prev: {
       inherit (self.packages.${prev.system})
       chemo;
