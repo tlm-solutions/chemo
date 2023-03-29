@@ -15,6 +15,7 @@ use std::env;
 use std::sync::{Arc, Mutex};
 
 use log::info;
+use futures::join;
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Clone)]
@@ -77,12 +78,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let chemo = DataReceiver::new(r09_queue.clone(), gps_queue.clone());
 
-    Server::builder()
+    let grpc_future = Server::builder()
         .add_service(ChemoServer::new(chemo))
         .serve(grpc_chemo_host); // .await
 
     let mut state = State::new(r09_queue, gps_queue);
-    state.processing_loop().await;
+
+    join!(grpc_future, state.processing_loop());
 
     Ok(())
 }
