@@ -57,9 +57,9 @@ pub struct VehicleState {
 }
 
 ///
-/// Mapping from (line, run) -> VehicleState
+/// Mapping from region -> (line, run) -> VehicleState
 ///
-pub type Vehicles = HashMap<(i32, i32), VehicleState>;
+pub type Vehicles = HashMap<i64, HashMap<(i32, i32), VehicleState>>;
 
 pub type QueueR09 = Arc<Mutex<TimeQueue<R09GrpcTelegram>>>;
 pub type QueueGps = Arc<Mutex<TimeQueue<GrpcGpsPoint>>>;
@@ -195,6 +195,8 @@ impl State {
 
         match self
             .vehicles
+            .entry(telegram.region)
+            .or_insert_with(HashMap::new)
             .get_mut(&(telegram.line(), telegram.run_number()))
         {
             Some(vehicle_information) => {
@@ -218,7 +220,7 @@ impl State {
 
                 send_r09 = true;
 
-                self.vehicles.insert(
+                self.vehicles.get_mut(&telegram.region).unwrap().insert(
                     (telegram.line(), telegram.run_number()),
                     vehicle_information,
                 );
@@ -235,6 +237,7 @@ impl State {
                 self.send_waypoint(GrpcWaypoint {
                     id: 0u64,
                     source: WayPointType::R09Telegram as i32,
+                    region: telegram.region,
                     time: telegram.time,
                     lat: position.0,
                     lon: position.1,
@@ -250,7 +253,12 @@ impl State {
     async fn handle_gps(&mut self, point: GrpcGpsPoint) {
         let mut delay = None;
 
-        match self.vehicles.get_mut(&(point.line, point.run)) {
+        match self
+            .vehicles
+            .entry(point.region)
+            .or_insert_with(HashMap::new)
+            .get_mut(&(point.line, point.run))
+        {
             // vehicle was seen before
             Some(vehicle_information) => {
                 vehicle_information.last_gps_update = point.time;
@@ -269,6 +277,8 @@ impl State {
                 };
 
                 self.vehicles
+                    .get_mut(&point.region)
+                    .unwrap()
                     .insert((point.line, point.run), vehicle_information);
             }
         }
@@ -276,6 +286,7 @@ impl State {
         self.send_waypoint(GrpcWaypoint {
             id: 0u64,
             source: WayPointType::TrekkieGPS as i32,
+            region: point.region,
             time: point.time,
             lat: point.lat,
             lon: point.lon,
