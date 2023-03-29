@@ -73,6 +73,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or(default_grpc_chemo_host)
         .parse()?;
 
+    info!("chemo listening on {} ...", &grpc_chemo_host);
+
     let chemo = DataReceiver::new(r09_queue.clone(), gps_queue.clone());
 
     Server::builder()
