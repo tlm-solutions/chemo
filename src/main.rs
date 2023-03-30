@@ -41,6 +41,7 @@ impl Chemo for DataReceiver {
     ) -> Result<Response<ReturnCode>, Status> {
         let extracted = request.into_inner();
 
+        info!("received r09 telegram {:?}", &extracted);
         if let Ok(mut queue) = self.r09_queue.lock() {
             queue.insert(extracted);
         }
@@ -53,6 +54,7 @@ impl Chemo for DataReceiver {
     ) -> Result<Response<ReturnCode>, Status> {
         let extracted = request.into_inner();
 
+        info!("received gps point {:?}", &extracted);
         if let Ok(mut queue) = self.gps_queue.lock() {
             queue.insert(extracted);
         }
