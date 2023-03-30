@@ -82,11 +82,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let grpc_future = Server::builder()
         .add_service(ChemoServer::new(chemo))
-        .serve(grpc_chemo_host); // .await
+        .serve(grpc_chemo_host);
 
     let mut state = State::new(r09_queue, gps_queue);
 
-    join!(grpc_future, state.processing_loop());
+    //the nice way if the world would be a better place
+    //join!(grpc_future, state.processing_loop()); 
+    
+    // TODO: I can't take this anymore release me from the pain
+    std::thread::spawn(move || {
+        use futures::executor::block_on;
+        block_on(state.processing_loop());
+    });
+
+    grpc_future.await;
 
     Ok(())
 }
