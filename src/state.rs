@@ -8,7 +8,7 @@ use diesel::r2d2::ConnectionManager;
 use diesel::r2d2::Pool;
 use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
 
-use log::{debug, error};
+use log::{debug, error, info};
 use std::collections::HashMap;
 use std::env;
 use std::sync::{Arc, Mutex};
@@ -126,6 +126,8 @@ impl State {
                     gps_point = queue.pop();
                 }
 
+                info!("gps - mainloop: time: {} time-max: {} element: {:?}", get_time() - start_time, MAX_QUEUE_PROCESSING_TIME_SLICE, &gps_point);
+
                 match gps_point {
                     Some(value) => {
                         self.handle_gps(value).await;
@@ -142,6 +144,8 @@ impl State {
                 if let Ok(mut queue) = self.r09_queue.try_lock() {
                     r09_telegram = queue.pop();
                 }
+
+                info!("r09 - mainloop: time: {} time-max: {} element: {:?}", get_time() - start_time, MAX_QUEUE_PROCESSING_TIME_SLICE, &r09_telegram);
 
                 match r09_telegram {
                     Some(value) => {
@@ -226,6 +230,8 @@ impl State {
                 );
             }
         }
+
+        info!("sending r09 telegram: {}", send_r09);
 
         // we send this r09 telegram as a waypoint
         if send_r09 {
