@@ -58,11 +58,11 @@ where
         };
 
         // TODO: remove this debug print
-        println!(
+        /*println!(
             "{} {}",
             self.elements[0].get_time(),
             self.elements[self.elements.len() - 1].get_time()
-        );
+        );*/
 
         if let Some(element) = self.elements.pop() {
             if (get_time() - element.get_time() as u128) < self.time_buffer.into() {
