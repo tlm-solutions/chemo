@@ -119,8 +119,8 @@ impl State {
             //TODO: maybe optimize this later to remove code redudency
 
             let start_time = get_time();
-
-            while get_time() - start_time > MAX_QUEUE_PROCESSING_TIME_SLICE {
+            
+            while get_time() - start_time < MAX_QUEUE_PROCESSING_TIME_SLICE {
                 let mut gps_point = None;
                 if let Ok(mut queue) = self.gps_queue.try_lock() {
                     gps_point = queue.pop();
@@ -139,7 +139,7 @@ impl State {
             }
 
             let start_time = get_time();
-            while get_time() - start_time > MAX_QUEUE_PROCESSING_TIME_SLICE {
+            while get_time() - start_time < MAX_QUEUE_PROCESSING_TIME_SLICE {
                 let mut r09_telegram = None;
                 if let Ok(mut queue) = self.r09_queue.try_lock() {
                     r09_telegram = queue.pop();
