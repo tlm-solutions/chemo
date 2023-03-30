@@ -126,8 +126,6 @@ impl State {
                     gps_point = queue.pop();
                 }
 
-                info!("gps - mainloop: time: {} time-max: {} element: {:?}", get_time() - start_time, MAX_QUEUE_PROCESSING_TIME_SLICE, &gps_point);
-
                 match gps_point {
                     Some(value) => {
                         self.handle_gps(value).await;
@@ -144,8 +142,6 @@ impl State {
                 if let Ok(mut queue) = self.r09_queue.try_lock() {
                     r09_telegram = queue.pop();
                 }
-
-                info!("r09 - mainloop: time: {} time-max: {} element: {:?}", get_time() - start_time, MAX_QUEUE_PROCESSING_TIME_SLICE, &r09_telegram);
 
                 match r09_telegram {
                     Some(value) => {
@@ -186,6 +182,8 @@ impl State {
     }
 
     async fn handle_r09(&mut self, telegram: R09GrpcTelegram) {
+        info!("handleing telegram {:?}", &telegram);
+
         // cannot work with this data discard instantly
         if telegram.line.is_none() || telegram.run_number.is_none() {
             return;
@@ -257,6 +255,7 @@ impl State {
     }
 
     async fn handle_gps(&mut self, point: GrpcGpsPoint) {
+        info!("handleing gps {:?}", &point);
         let mut delay = None;
 
         match self
