@@ -85,16 +85,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .serve(grpc_chemo_host);
 
     let mut state = State::new(r09_queue, gps_queue);
+    
+    tokio::spawn(async move {
+        state.processing_loop().await;
+    });
 
-    //the nice way if the world would be a better place
-    select!{
-        _ = grpc_future => {
-            println!("GRPC Receive Terminated");
-        }
-        _ = state.processing_loop() => {
-            println!("State Main Loop Terminated");
-        }
-    }
+    grpc_future.await;
     
     // TODO: I can't take this anymore release me from the pain
     //std::thread::spawn(move || {
