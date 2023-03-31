@@ -15,7 +15,7 @@ use std::env;
 use std::sync::{Arc, Mutex};
 
 use log::info;
-use tokio::join;
+use tokio::select;
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Clone)]
@@ -87,7 +87,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut state = State::new(r09_queue, gps_queue);
 
     //the nice way if the world would be a better place
-    join!(grpc_future, state.processing_loop()); 
+    select!{
+        _ = grpc_future => {
+            println!("GRPC Receive Terminated");
+        }
+        _ = state.processing_loop() => {
+            println!("State Main Loop Terminated");
+        }
+    }
     
     // TODO: I can't take this anymore release me from the pain
     //std::thread::spawn(move || {
