@@ -15,7 +15,7 @@ use std::env;
 use std::sync::{Arc, Mutex};
 
 use log::info;
-use futures::join;
+use tokio::join;
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Clone)]
@@ -87,15 +87,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut state = State::new(r09_queue, gps_queue);
 
     //the nice way if the world would be a better place
-    //join!(grpc_future, state.processing_loop()); 
+    join!(grpc_future, state.processing_loop()); 
     
     // TODO: I can't take this anymore release me from the pain
-    std::thread::spawn(move || {
-        use futures::executor::block_on;
-        block_on(state.processing_loop());
-    });
+    //std::thread::spawn(move || {
+    //    use futures::executor::block_on;
+    //    block_on(state.processing_loop());
+    //});
+    // grpc_future.await;
 
-    grpc_future.await;
 
     Ok(())
 }
