@@ -190,7 +190,7 @@ impl State {
         }
 
         // function that converts the r09 delay value into seconds
-        let convert_delay = |enum_value| (enum_value - 7) as f32 * 60f32;
+        let convert_delay = |enum_value| enum_value as f32 * 60f32;
 
         // if this telegram should be send out as a waypoint
         let send_r09;
