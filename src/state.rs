@@ -80,10 +80,10 @@ pub struct State {
 // TODO: maybe make those to configurable
 
 // this constant defines the time difference is needed to switch from gps stream to r09
-const DISCARD_R09_TIME: u64 = 60;
+const DISCARD_R09_TIME: u64 = 60 * 1000;
 
 // after which time delays should not be valid anymore
-const ACCEPT_DELAY: u64 = 90;
+const ACCEPT_DELAY: u64 = 90 * 1000;
 
 impl State {
     /// creates empty state object
