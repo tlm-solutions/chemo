@@ -58,12 +58,12 @@ where
                 .as_millis()
         };
 
-        if let Some(element) = self.elements.pop() {
+        if let Some(element) = self.elements.last() {
             info!("len: {}, oldest element: {}", self.elements.len(), get_time() - element.get_time());
             if (get_time() - element.get_time() as u128) < self.time_buffer {
                 None
             } else {
-                Some(element)
+                self.elements.pop()
             }
         } else {
             None
