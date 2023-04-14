@@ -47,7 +47,7 @@ where
 
     pub fn insert(&mut self, element: T) {
         self.elements.push(element);
-        self.elements.sort_by_key(|x| x.get_time());
+        self.elements.sort_by(|a, b| a.get_time().cmp(&b.get_time()));
     }
 
     pub fn pop(&mut self) -> Option<T> {
@@ -59,7 +59,7 @@ where
         };
 
         if let Some(element) = self.elements.pop() {
-            info!("oldest element: {}", get_time() - element.get_time());
+            info!("len: {}, oldest element: {}", self.elements.len(), get_time() - element.get_time());
             if (get_time() - element.get_time() as u128) < self.time_buffer {
                 None
             } else {
