@@ -114,7 +114,7 @@ impl State {
         };
 
         loop {
-            const MAX_QUEUE_PROCESSING_TIME_SLICE: u128 = 750;
+            const MAX_QUEUE_PROCESSING_TIME_SLICE: u128 = 50;
 
             //TODO: maybe optimize this later to remove code redudency
 
