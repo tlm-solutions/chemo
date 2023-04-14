@@ -1,5 +1,6 @@
 use crate::{GrpcGpsPoint, R09GrpcTelegram};
 
+use log::info;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 ///
@@ -7,18 +8,18 @@ use std::time::{SystemTime, UNIX_EPOCH};
 /// that returns the time in milliseconds
 ///
 pub trait GetTime {
-    fn get_time(&self) -> u64;
+    fn get_time(&self) -> u128 ;
 }
 
 impl GetTime for R09GrpcTelegram {
-    fn get_time(&self) -> u64 {
-        self.time
+    fn get_time(&self) -> u128 {
+        self.time as u128
     }
 }
 
 impl GetTime for GrpcGpsPoint {
-    fn get_time(&self) -> u64 {
-        self.time
+    fn get_time(&self) -> u128 {
+        self.time as u128
     }
 }
 
@@ -27,7 +28,7 @@ where
     T: GetTime,
 {
     /// minimal duration time of an element inside the queue
-    time_buffer: u64,
+    time_buffer: u128,
     /// list of elements that the queue currently containes
     elements: Vec<T>,
 }
@@ -37,7 +38,7 @@ where
     T: GetTime,
 {
     pub fn new() -> TimeQueue<T> {
-        const DEFAULT_TIME: u64 = 1000; // 1s
+        const DEFAULT_TIME: u128 = 1000; // 1s
         TimeQueue {
             time_buffer: DEFAULT_TIME,
             elements: vec![],
@@ -57,15 +58,9 @@ where
                 .as_millis()
         };
 
-        // TODO: remove this debug print
-        /*println!(
-            "{} {}",
-            self.elements[0].get_time(),
-            self.elements[self.elements.len() - 1].get_time()
-        );*/
-
         if let Some(element) = self.elements.pop() {
-            if (get_time() - element.get_time() as u128) < self.time_buffer.into() {
+            info!("oldest element: {}", get_time() - element.get_time());
+            if (get_time() - element.get_time() as u128) < self.time_buffer {
                 None
             } else {
                 Some(element)

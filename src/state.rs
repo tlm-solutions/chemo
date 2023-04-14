@@ -114,13 +114,11 @@ impl State {
         };
 
         loop {
-            const MAX_QUEUE_PROCESSING_TIME_SLICE: u128 = 500;
+            const MAX_QUEUE_PROCESSING_TIME_SLICE: u128 = 750;
 
             //TODO: maybe optimize this later to remove code redudency
 
             let start_time = get_time();
-            
-            info!("processing gps ... ");
             while get_time() - start_time < MAX_QUEUE_PROCESSING_TIME_SLICE {
                 let mut gps_point = None;
                 if let Ok(mut queue) = self.gps_queue.try_lock() {
@@ -138,8 +136,6 @@ impl State {
             }
 
             let start_time = get_time();
-
-            info!("processing r09 ... ");
             while get_time() - start_time < MAX_QUEUE_PROCESSING_TIME_SLICE {
                 let mut r09_telegram = None;
                 if let Ok(mut queue) = self.r09_queue.try_lock() {
