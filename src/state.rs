@@ -120,7 +120,8 @@ impl State {
             //TODO: maybe optimize this later to remove code redudency
             
             let near_duration = min(self.gps_queue.lock().unwrap().most_recent_event(), self.r09_queue.lock().unwrap().most_recent_event());
-            std::thread::sleep(near_duration - Duration::from_millis(20));
+            info!("sleeping for {:?}ms", near_duration);
+            std::thread::sleep(near_duration);
 
             let start_time = get_time();
             while get_time() - start_time < MAX_QUEUE_PROCESSING_TIME_SLICE {
