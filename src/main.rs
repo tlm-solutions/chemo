@@ -14,8 +14,7 @@ use tlms::grpc::{GrpcGpsPoint, R09GrpcTelegram, ReturnCode};
 use std::env;
 use std::sync::{Arc, Mutex};
 
-use log::info;
-use tokio::select;
+use log::{info, error};
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Clone)]
@@ -90,15 +89,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         state.processing_loop().await;
     });
 
-    grpc_future.await;
+    if let Err(e) = grpc_future.await {
+        error!("grpc future throwed an error {:?}", e);
+    }
     
-    // TODO: I can't take this anymore release me from the pain
-    //std::thread::spawn(move || {
-    //    use futures::executor::block_on;
-    //    block_on(state.processing_loop());
-    //});
-    // grpc_future.await;
-
-
     Ok(())
 }

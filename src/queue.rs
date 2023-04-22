@@ -1,7 +1,7 @@
 use crate::{GrpcGpsPoint, R09GrpcTelegram};
 
 use log::info;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
 
 ///
 /// trait that enforces the type to have a get_time function
@@ -67,6 +67,19 @@ where
             }
         } else {
             None
+        }
+    }
+
+    pub fn most_recent_event(&self) -> Duration {
+        let time = SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("Time went backwards")
+                .as_millis();
+
+        if let Some(element) = self.elements.last() {
+            Duration::from_millis((time - element.get_time()) as u64)
+        } else {
+            Duration::from_millis(self.time_buffer as u64)
         }
     }
 }

@@ -9,10 +9,11 @@ use diesel::r2d2::Pool;
 use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
 
 use log::{debug, error, info};
+use std::cmp::min;
 use std::collections::HashMap;
 use std::env;
 use std::sync::{Arc, Mutex};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
 
 /// type of the postgres connection pool
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
@@ -117,6 +118,9 @@ impl State {
             const MAX_QUEUE_PROCESSING_TIME_SLICE: u128 = 50;
 
             //TODO: maybe optimize this later to remove code redudency
+            
+            let near_duration = min(self.gps_queue.lock().unwrap().most_recent_event(), self.r09_queue.lock().unwrap().most_recent_event());
+            std::thread::sleep(near_duration - Duration::from_millis(20));
 
             let start_time = get_time();
             while get_time() - start_time < MAX_QUEUE_PROCESSING_TIME_SLICE {
