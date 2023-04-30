@@ -252,6 +252,8 @@ impl State {
                     line: telegram.line.unwrap(), //
                     run: telegram.run_number.unwrap(),
                     delayed: telegram.delay.map(convert_delay),
+                    r09_reporting_point: Some(telegram.reporting_point),
+                    r09_destination_number: telegram.destination_number
                 })
                 .await;
             }
@@ -302,6 +304,8 @@ impl State {
             line: point.line,
             run: point.run,
             delayed: delay,
+            r09_reporting_point: None,
+            r09_destination_number: None
         })
         .await;
     }
