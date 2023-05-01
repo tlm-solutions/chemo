@@ -38,7 +38,7 @@ where
     T: GetTime,
 {
     pub fn new() -> TimeQueue<T> {
-        const DEFAULT_TIME: u128 = 500; // 1s
+        const DEFAULT_TIME: u128 = 500; // 0.5s
         TimeQueue {
             time_buffer: DEFAULT_TIME,
             elements: vec![],
@@ -46,9 +46,16 @@ where
     }
 
     pub fn insert(&mut self, element: T) {
-        self.elements.push(element);
-        self.elements.sort_by_key(|a| a.get_time())
-        //TODO: remove self.elements.sort_by(|a, b| a.get_time().cmp(&b.get_time()));
+        let current_time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_millis();
+
+        // this ensures that elements inside the queue are not to old
+        if element.get_time() > current_time - self.time_buffer {
+            self.elements.push(element);
+            self.elements.sort_by_key(|a| a.get_time())
+        }
     }
 
     /// returns the top element
