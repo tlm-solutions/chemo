@@ -14,7 +14,7 @@ use tlms::grpc::{GrpcGpsPoint, R09GrpcTelegram, ReturnCode};
 use std::env;
 use std::sync::{Arc, Mutex};
 
-use log::{info, error};
+use log::{error, info};
 use tonic::{transport::Server, Request, Response, Status};
 
 #[derive(Clone)]
@@ -84,7 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .serve(grpc_chemo_host);
 
     let mut state = State::new(r09_queue, gps_queue);
-    
+
     tokio::spawn(async move {
         state.processing_loop().await;
     });
@@ -92,6 +92,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if let Err(e) = grpc_future.await {
         error!("grpc future throwed an error {:?}", e);
     }
-    
+
     Ok(())
 }

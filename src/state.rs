@@ -13,7 +13,7 @@ use std::cmp::min;
 use std::collections::HashMap;
 use std::env;
 use std::sync::{Arc, Mutex};
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// type of the postgres connection pool
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
@@ -79,12 +79,11 @@ pub struct State {
 }
 
 // TODO: maybe make those to configurable
-
-// this constant defines the time difference is needed to switch from gps stream to r09
-const DISCARD_R09_TIME: u64 = 60 * 1000;
+// this constant defines the time difference that is needed to switch from gps stream to r09
+const DISCARD_R09_TIME: u64 = 20 * 1000; // 20s
 
 // after which time delays should not be valid anymore
-const ACCEPT_DELAY: u64 = 90 * 1000;
+const ACCEPT_DELAY: u64 = 90 * 1000; // 90s
 
 impl State {
     /// creates empty state object
@@ -106,6 +105,8 @@ impl State {
         }
     }
 
+    /// main loop that fetches elements from the time-event loops
+    /// and pushes them into the corresponding handlers.
     pub async fn processing_loop(&mut self) {
         let get_time = || {
             SystemTime::now()
@@ -115,14 +116,18 @@ impl State {
         };
 
         loop {
-            const MAX_QUEUE_PROCESSING_TIME_SLICE: u128 = 50;
+            const MAX_QUEUE_PROCESSING_TIME_SLICE: u128 = 50; //50ms
 
-            //TODO: maybe optimize this later to remove code redudency
-            
-            let near_duration = min(self.gps_queue.lock().unwrap().most_recent_event(), self.r09_queue.lock().unwrap().most_recent_event());
-            info!("sleeping for {:?}ms", near_duration);
+            // this in an optimization that chemo is not squatting a core entierally
+            // here we fetch the nearest possible event in the queue and wait for its arrival
+            let near_duration = min(
+                self.gps_queue.lock().unwrap().most_recent_event(),
+                self.r09_queue.lock().unwrap().most_recent_event(),
+            );
+            // waiting for the next event
             std::thread::sleep(near_duration);
 
+            // processing gps points
             let start_time = get_time();
             while get_time() - start_time < MAX_QUEUE_PROCESSING_TIME_SLICE {
                 let mut gps_point = None;
@@ -140,6 +145,7 @@ impl State {
                 }
             }
 
+            // processing r09 telegrams in the queue
             let start_time = get_time();
             while get_time() - start_time < MAX_QUEUE_PROCESSING_TIME_SLICE {
                 let mut r09_telegram = None;
@@ -159,6 +165,7 @@ impl State {
         }
     }
 
+    /// this makes a database look up to figure out the gps positions of a reporting_point
     async fn fetch_gps_position(
         &mut self,
         reporting_point: i32,
@@ -185,6 +192,7 @@ impl State {
             .ok()
     }
 
+    /// handles r09 telegrams
     async fn handle_r09(&mut self, telegram: R09GrpcTelegram) {
         info!("handleing telegram {:?}", &telegram);
 
@@ -197,7 +205,7 @@ impl State {
         let convert_delay = |enum_value| enum_value as f32 * 60f32;
 
         // if this telegram should be send out as a waypoint
-        let send_r09;
+        let mut send_r09;
 
         match self
             .vehicles
@@ -233,6 +241,15 @@ impl State {
             }
         }
 
+        // check if a gps point is queued for the same vehicle
+        if let Ok(gps_queue) = self.gps_queue.lock() {
+            // so if we find a gps point for this vehicle we dont send the r09 telegram that why
+            // its negated.
+            send_r09 = !gps_queue.find(&|point: &GrpcGpsPoint| {
+                point.line == telegram.line() || point.run == telegram.run_number()
+            });
+        }
+
         info!("sending r09 telegram: {}", send_r09);
 
         // we send this r09 telegram as a waypoint
@@ -253,7 +270,7 @@ impl State {
                     run: telegram.run_number.unwrap(),
                     delayed: telegram.delay.map(convert_delay),
                     r09_reporting_point: Some(telegram.reporting_point),
-                    r09_destination_number: telegram.destination_number
+                    r09_destination_number: telegram.destination_number,
                 })
                 .await;
             }
@@ -305,11 +322,12 @@ impl State {
             run: point.run,
             delayed: delay,
             r09_reporting_point: None,
-            r09_destination_number: None
+            r09_destination_number: None,
         })
         .await;
     }
 
+    /// sending out they waypoint to all the waiting servers
     async fn send_waypoint(&self, waypoint: GrpcWaypoint) {
         for url in &self.grpc_sinks {
             match ReceiveWaypointClient::connect(url.clone()).await {
