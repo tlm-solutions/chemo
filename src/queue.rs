@@ -67,7 +67,7 @@ where
                 .as_millis()
         };
 
-        if let Some(element) = self.elements.last() {
+        if let Some(element) = self.elements.first() {
             info!(
                 "len: {}, oldest element: {}",
                 self.elements.len(),

@@ -1,20 +1,24 @@
 {
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
     utils.url = "github:numtide/flake-utils";
     crane = {
       url = "github:ipetkov/crane";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.flake-utils.follows = "utils";
     };
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = inputs@{ self, nixpkgs, utils, crane }:
+  outputs = inputs@{ self, nixpkgs, utils, crane, fenix}:
     utils.lib.eachDefaultSystem
     (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
-      craneLib = crane.lib.${system};
+      craneLib = crane.lib.${system}.overrideToolchain fenix.packages.${system}.minimal.toolchain;
       package = pkgs.callPackage ./derivation.nix { craneLib = craneLib; };
     in
     rec {
