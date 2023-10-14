@@ -1,5 +1,6 @@
 use crate::{GrpcGpsPoint, R09GrpcTelegram};
 
+use core::fmt::Debug;
 use log::info;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -35,7 +36,7 @@ where
 
 impl<T> TimeQueue<T>
 where
-    T: GetTime,
+    T: GetTime + Debug,
 {
     pub fn new() -> TimeQueue<T> {
         const DEFAULT_TIME: u128 = 500; // 0.5s
@@ -53,6 +54,7 @@ where
 
         // this ensures that elements inside the queue are not to old
         if element.get_time() > current_time - self.time_buffer {
+            info!("inserting into queue: {:?}", &element);
             self.elements.push(element);
             self.elements.sort_by_key(|a| a.get_time())
         }
