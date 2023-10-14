@@ -41,8 +41,13 @@ impl Chemo for DataReceiver {
         let extracted = request.into_inner();
 
         info!("received r09 telegram {:?}", &extracted);
-        if let Ok(mut queue) = self.r09_queue.lock() {
-            queue.insert(extracted);
+        match self.r09_queue.lock() {
+            Ok(mut queue) => {
+                queue.insert(extracted);
+            }
+            Err(e) => {
+                error!("error occured while trying to unlock gps queue: {:?}", &e);
+            }
         }
 
         Ok(Response::new(ReturnCode { status: 0 }))
@@ -54,8 +59,13 @@ impl Chemo for DataReceiver {
         let extracted = request.into_inner();
 
         info!("received gps point {:?}", &extracted);
-        if let Ok(mut queue) = self.gps_queue.lock() {
-            queue.insert(extracted);
+        match self.gps_queue.lock() {
+            Ok(mut queue) => {
+                queue.insert(extracted);
+            }
+            Err(e) => {
+                error!("error occured while trying to unlock gps queue: {:?}", &e);
+            }
         }
 
         Ok(Response::new(ReturnCode { status: 0 }))
