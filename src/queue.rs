@@ -39,7 +39,7 @@ where
     T: GetTime + Debug,
 {
     pub fn new() -> TimeQueue<T> {
-        const DEFAULT_TIME: u128 = 500; // 0.5s
+        const DEFAULT_TIME: u128 = 2000; // 2s
         TimeQueue {
             time_buffer: DEFAULT_TIME,
             elements: vec![],

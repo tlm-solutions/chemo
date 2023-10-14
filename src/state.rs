@@ -314,6 +314,7 @@ impl State {
             }
         }
         
+        info!("sending gps waypoint");
         self.send_waypoint(GrpcWaypoint {
             id: 0u64,
             source: WayPointType::TrekkieGPS as i32,
