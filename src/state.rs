@@ -14,7 +14,6 @@ use std::collections::HashMap;
 use std::env;
 use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
-use core::fmt::Debug;
 
 /// type of the postgres connection pool
 type DbPool = r2d2::Pool<ConnectionManager<PgConnection>>;
@@ -134,8 +133,6 @@ impl State {
                 let mut gps_point = None;
                 if let Ok(mut queue) = self.gps_queue.try_lock() {
                     gps_point = queue.pop();
-
-                    info!("gps found {:?}", &gps_point);
                 }
 
                 match gps_point {
@@ -314,7 +311,6 @@ impl State {
             }
         }
         
-        info!("sending gps waypoint");
         self.send_waypoint(GrpcWaypoint {
             id: 0u64,
             source: WayPointType::TrekkieGPS as i32,
