@@ -310,7 +310,7 @@ impl State {
                     .insert((point.line, point.run), vehicle_information);
             }
         }
-        
+
         self.send_waypoint(GrpcWaypoint {
             id: 0u64,
             source: WayPointType::TrekkieGPS as i32,

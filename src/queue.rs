@@ -51,7 +51,7 @@ where
             .duration_since(UNIX_EPOCH)
             .expect("Time went backwards")
             .as_millis();
-        
+
         // this ensures that elements inside the queue are not to old
         if element.get_time() > current_time - self.time_buffer {
             self.elements.push(element);

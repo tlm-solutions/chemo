@@ -1,6 +1,8 @@
 # Chemo Thearpy
 
-The Transit Live Mapping Solutions realworld cringe data processing plant.
+[![built with nix](https://builtwithnix.org/badge.svg)](https://builtwithnix.org)
+
+The Transit-Live-Mapping Solutions realworld cringe data processing plant.
 
 ## Purpose 
 
