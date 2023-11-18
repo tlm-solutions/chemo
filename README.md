@@ -2,6 +2,13 @@
 
 The Transit Live Mapping Solutions realworld cringe data processing plant.
 
+## Purpose 
+
+- Merge different data streams into one uniform one.
+- Currently takes a R09Telegram and GPS data stream and produces a stream of waypoints.
+- Chemo requires access to the Postgres database to perform the r09 reporting-point look up
+- It sends out the data stream to services like [funnel](https://github.com/tlm-solutions/funnel) or [bureaucrat](https://github.com/tlm-solutions/bureaucrat)
+
 ## Service Configuration
 
 Following Environment Variables are read by there service
