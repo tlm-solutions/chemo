@@ -154,5 +154,6 @@ in
       group = cfg.group;
       extraGroups = [ ];
     };
+    users.groups."${cfg.group}" = {};
   };
 }
