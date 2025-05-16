@@ -8,7 +8,7 @@ use chrono::{Duration, Utc};
 use diesel::r2d2::ConnectionManager;
 use diesel::r2d2::Pool;
 use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
-use log::{debug, error, info};
+use log::{debug, error};
 
 use std::cmp::min;
 use std::collections::HashMap;
@@ -223,7 +223,7 @@ impl State {
 
     /// handles r09 telegrams
     async fn handle_r09(&mut self, telegram: R09GrpcTelegram) {
-        info!("handling telegram {:?}", &telegram);
+        debug!("handling telegram {:?}", &telegram);
 
         // cannot work with this data discard instantly
         if telegram.line.is_none() || telegram.run_number.is_none() {
@@ -279,7 +279,7 @@ impl State {
             });
         }
 
-        info!("sending r09 telegram: {}", send_r09);
+        debug!("sending r09 telegram: {}", send_r09);
 
         // we send this r09 telegram as a waypoint
         if send_r09 {
@@ -307,7 +307,7 @@ impl State {
     }
 
     async fn handle_gps(&mut self, point: GrpcGpsPoint) {
-        info!("handling gps {:?}", &point);
+        debug!("handling gps {:?}", &point);
         let mut delay = None;
 
         match self
