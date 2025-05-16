@@ -4,11 +4,12 @@ use tlms::grpc::receive_waypoint_client::ReceiveWaypointClient;
 use tlms::grpc::{GrpcGpsPoint, GrpcWaypoint, R09GrpcTelegram};
 use tlms::locations::{waypoint::WayPointType, TransmissionLocation};
 
+use chrono::{Duration, Utc};
 use diesel::r2d2::ConnectionManager;
 use diesel::r2d2::Pool;
 use diesel::{ExpressionMethods, PgConnection, QueryDsl, RunQueryDsl};
-
 use log::{debug, error, info};
+
 use std::cmp::min;
 use std::collections::HashMap;
 use std::env;
@@ -65,6 +66,11 @@ pub type Vehicles = HashMap<i64, HashMap<(i32, i32), VehicleState>>;
 pub type QueueR09 = Arc<Mutex<TimeQueue<R09GrpcTelegram>>>;
 pub type QueueGps = Arc<Mutex<TimeQueue<GrpcGpsPoint>>>;
 
+struct CachedLocation {
+    location: (f64, f64),
+    load_time: chrono::DateTime<Utc>,
+}
+
 pub struct State {
     /// queue for r09 telegrams
     r09_queue: QueueR09,
@@ -76,6 +82,8 @@ pub struct State {
     grpc_sinks: Vec<String>,
     /// postgres connection pools
     db_pool: DbPool,
+    /// local cache for r09 reporting point locations
+    r09_reporting_points: HashMap<(i64, i32), CachedLocation>,
 }
 
 // TODO: maybe make those to configurable
@@ -102,6 +110,7 @@ impl State {
             vehicles: HashMap::new(),
             grpc_sinks,
             db_pool: create_db_pool(),
+            r09_reporting_points: HashMap::new(),
         }
     }
 
@@ -179,22 +188,42 @@ impl State {
             }
         };
 
+        const CACHING_TIME: i64 = 300;
+
+        if let Some(value) = self.r09_reporting_points.get(&(region, reporting_point)) {
+            if Utc::now() - value.load_time < Duration::seconds(CACHING_TIME) {
+                return Some(value.location);
+            }
+        }
+
         use tlms::schema::r09_transmission_locations::dsl::r09_transmission_locations;
         use tlms::schema::r09_transmission_locations::{
             region as db_region, reporting_point as db_reporting_point,
         };
 
-        r09_transmission_locations
+        match r09_transmission_locations
             .filter(db_region.eq(region))
             .filter(db_reporting_point.eq(reporting_point))
             .first::<TransmissionLocation>(&mut database_connection)
             .map(|row| (row.lat, row.lon))
-            .ok()
+        {
+            Ok(location) => {
+                self.r09_reporting_points.insert(
+                    (region, reporting_point),
+                    CachedLocation {
+                        location,
+                        load_time: Utc::now(),
+                    },
+                );
+                Some(location)
+            }
+            Err(_) => None,
+        }
     }
 
     /// handles r09 telegrams
     async fn handle_r09(&mut self, telegram: R09GrpcTelegram) {
-        info!("handleing telegram {:?}", &telegram);
+        info!("handling telegram {:?}", &telegram);
 
         // cannot work with this data discard instantly
         if telegram.line.is_none() || telegram.run_number.is_none() {
@@ -278,7 +307,7 @@ impl State {
     }
 
     async fn handle_gps(&mut self, point: GrpcGpsPoint) {
-        info!("handleing gps {:?}", &point);
+        info!("handling gps {:?}", &point);
         let mut delay = None;
 
         match self

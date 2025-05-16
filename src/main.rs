@@ -46,7 +46,7 @@ impl Chemo for DataReceiver {
                 queue.insert(extracted);
             }
             Err(e) => {
-                error!("error occured while trying to unlock gps queue: {:?}", &e);
+                error!("error occurred while trying to unlock gps queue: {:?}", &e);
             }
         }
 
@@ -64,7 +64,7 @@ impl Chemo for DataReceiver {
                 queue.insert(extracted);
             }
             Err(e) => {
-                error!("error occured while trying to unlock gps queue: {:?}", &e);
+                error!("error occurred while trying to unlock gps queue: {:?}", &e);
             }
         }
 
@@ -100,7 +100,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     if let Err(e) = grpc_future.await {
-        error!("grpc future throwed an error {:?}", e);
+        error!("grpc future throw an error {:?}", e);
     }
 
     Ok(())

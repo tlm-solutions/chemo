@@ -30,7 +30,7 @@ where
 {
     /// minimal duration time of an element inside the queue
     time_buffer: u128,
-    /// list of elements that the queue currently containes
+    /// list of elements that the queue currently contains
     elements: Vec<T>,
 }
 
@@ -98,7 +98,7 @@ where
         }
     }
 
-    /// this searches for element that satisifies this lambda
+    /// this searches for element that satisfies this lambda
     /// mainly used to check if there are any gps points queued.
     pub fn find(&self, f: &dyn Fn(&T) -> bool) -> bool {
         self.elements.iter().any(f)
