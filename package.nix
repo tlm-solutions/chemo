@@ -1,4 +1,4 @@
-{ lib, rustPlatform, pkg-config, cmake, openssl, libpq, ... }:
+{ lib, rustPlatform, pkg-config, openssl, protobuf, libpq, ... }:
 
 let
   manifest = (lib.importTOML ./Cargo.toml).package;
@@ -9,12 +9,12 @@ rustPlatform.buildRustPackage (finalAttrs: {
 
   src = lib.cleanSource ./.;
 
-  cargoHash = "sha256-JCeuelqP5vCNd0A7dRnW+M3+FKUM2sUFFCyArm8VwN4=";
+  cargoHash = "sha256-nvWpk4p/ANiJNmUh8NcO0UgEIGjysLc9oI0b9OgL260=";
 
   cargoBuildFlags = "-p ${finalAttrs.pname}";
   cargoTestFlags = "-p ${finalAttrs.pname}";
 
-  nativeBuildInputs = [ pkg-config cmake ];
+  nativeBuildInputs = [ pkg-config protobuf ];
 
   buildInputs = [ openssl libpq ];
 
