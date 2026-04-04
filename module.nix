@@ -53,7 +53,7 @@ in
         '';
       };
       passwordFile = mkOption {
-        type = types.either types.path types.string;
+        type = types.either types.path types.str;
         default = "";
         description = ''password file from which the postgres password can be read'';
       };
